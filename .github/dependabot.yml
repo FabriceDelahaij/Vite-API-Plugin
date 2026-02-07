@@ -1,0 +1,79 @@
+# Dependabot configuration for automated dependency updates
+# https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    
+    # Limit number of open pull requests
+    open-pull-requests-limit: 5
+    
+    # Assignees and reviewers
+    # assignees:
+    #   - "your-username"
+    # reviewers:
+    #   - "your-team"
+    
+    # Labels for pull requests
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Commit message prefix
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"
+    
+    # Group updates
+    groups:
+      # Group all patch updates together
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      
+      # Group all minor updates together
+      minor-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+    
+    # Ignore specific dependencies (uncomment and modify as needed)
+    ignore:
+      # Ignore major version updates for core dependencies that might break compatibility
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      # Ignore Node.js version updates (handled separately)
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
+    
+    # Allow updates for specific dependencies only (uncomment and modify as needed)
+    # allow:
+    #   - dependency-name: "vite"
+    #   - dependency-name: "@sentry/node"
+    
+    # Increase version requirements
+    versioning-strategy: increase
+    
+    # Target branch for pull requests
+    target-branch: "main"
+
+  # Enable security updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"

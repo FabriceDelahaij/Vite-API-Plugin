@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vite API Routes Plugin - Demo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./script.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <i data-lucide="zap"></i>
+                        </div>
+                        <h1>Vite API Routes</h1>
+                    </div>
+                    <a href="https://github.com/fabricedelahaij/vite-api-plugin" class="github-button" target="_blank">
+                        <i data-lucide="github"></i>
+                        View on GitHub
+                    </a>
+                </div>
+                <p class="header-description">Next.js-style API routes for Vite with enterprise-grade security</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Hero Section -->
+                <section class="hero">
+                    <div class="hero-content">
+                        <h2>Interactive API Demo</h2>
+                        <p>Test the plugin's capabilities with live API endpoints</p>
+                    </div>
+                </section>
+
+                <!-- API Tester -->
+                <section class="api-tester">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>API Tester</h3>
+                            <div class="status-badge" id="status-badge">
+                                <div class="status-dot"></div>
+                                Ready
+                            </div>
+                        </div>
+                        <div class="card-content">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="method">Method</label>
+                                    <select id="method" class="select" onchange="updateMethodUI()">
+                                        <option value="GET">GET</option>
+                                        <option value="POST">POST</option>
+                                        <option value="PUT">PUT</option>
+                                        <option value="DELETE">DELETE</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="endpoint">Endpoint</label>
+                                    <input type="text" id="endpoint" class="input" value="/api/test" placeholder="/api/endpoint">
+                                </div>
+                            </div>
+                            <div class="form-group form-group-full" id="body-group" style="display: none;">
+                                <div class="form-label-row">
+                                    <label for="body">Request Body</label>
+                                    <button type="button" class="format-json-btn" onclick="apiTester.formatJson()" title="Format JSON">
+                                        <i data-lucide="code"></i>
+                                        Format
+                                    </button>
+                                </div>
+                                <textarea id="body" class="textarea" placeholder='{"key": "value"}' rows="4"></textarea>
+                            </div>
+                            <button class="button button-primary" onclick="testCustomEndpoint()" id="test-button">
+                                <span class="button-icon" id="button-icon">
+                                    <i data-lucide="play"></i>
+                                </span>
+                                Send Request
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>

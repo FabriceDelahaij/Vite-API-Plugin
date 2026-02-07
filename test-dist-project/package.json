@@ -1,0 +1,16 @@
+{
+  "name": "test-vite-api-routes",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node test-plugin.js"
+  },
+  "dependencies": {
+    "vite-api-routes-plugin": "file:../dist"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1"
+  }
+}
