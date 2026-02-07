@@ -331,42 +331,44 @@ npm install --save-dev typescript @types/node
 **Before (JavaScript):**
 ```js
 // pages/api/users.js
-export default function handler(req, res) {
-  const { name, email } = req.body;
-  res.json({ user: { name, email } });
+export async function POST(request) {
+  const { name, email } = await request.json();
+  
+  return new Response(JSON.stringify({ user: { name, email } }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 
 **After (TypeScript):**
 ```typescript
 // pages/api/users.ts
-import type { ApiHandler } from 'vite-api-routes-plugin';
-
 interface User {
   name: string;
   email: string;
 }
 
-const handler: ApiHandler = (req, res) => {
-  const { name, email }: User = req.body;
-  res.json({ user: { name, email } });
-};
-
-export default handler;
+export async function POST(request: Request): Promise<Response> {
+  const { name, email }: User = await request.json();
+  
+  return new Response(JSON.stringify({ user: { name, email } }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 ```
 
 ### 4. Modern Style with TypeScript
 
 ```typescript
 // pages/api/users.ts
-import type { ApiRequest } from 'vite-api-routes-plugin';
-
 interface CreateUserRequest {
   name: string;
   email: string;
 }
 
-export async function POST(request: ApiRequest): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
   const body: CreateUserRequest = await request.json();
   
   return new Response(JSON.stringify({ user: body }), {
@@ -386,7 +388,7 @@ function isValidUser(data: unknown): data is CreateUserRequest {
          'email' in data;
 }
 
-export async function POST(request: ApiRequest): Promise<Response> {
+export async function POST(request: Request): Promise<Response> {
   const body = await request.json();
   
   if (!isValidUser(body)) {

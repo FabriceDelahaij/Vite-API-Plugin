@@ -162,13 +162,16 @@ export default defineConfig({
 
 ```js
 // pages/api/example.js
-export default function handler(req, res) {
+export async function GET(request) {
   const apiKey = process.env.API_KEY;
   const isProduction = process.env.NODE_ENV === 'production';
 
-  res.json({
+  return new Response(JSON.stringify({
     environment: process.env.NODE_ENV,
     debug: process.env.DEBUG === 'true',
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 ```

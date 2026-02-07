@@ -17,41 +17,51 @@ Secure cookies are essential for protecting user sessions and preventing attacks
 
 ## 🚀 Quick Start
 
-### Using Built-in Cookie Helper
+### Setting Cookies
 
 ```js
 // pages/api/auth/login.js
-export default function handler(req, res) {
-  // Set secure cookie (automatically uses best practices)
-  res.setCookie('auth_token', 'token123', {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'strict',
-    maxAge: 3600, // 1 hour
+export async function POST(request) {
+  const { username, password } = await request.json();
+  
+  // Validate credentials...
+  
+  // Set secure cookie
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Set-Cookie': 'auth_token=token123; HttpOnly; Secure; SameSite=Strict; Max-Age=3600; Path=/',
+    },
   });
-
-  res.json({ success: true });
 }
 ```
 
-### Using Cookie Manager
+### Reading Cookies
 
 ```js
-import { CookieManager } from '../lib/cookies.js';
-
-export default function handler(req, res) {
-  const cookies = new CookieManager(req, res);
-
-  // Set auth cookie
-  cookies.setAuth('session', 'token123');
-
-  // Get cookie
-  const session = cookies.get('session');
-
-  // Clear cookie
-  cookies.clear('session');
-
-  res.json({ success: true });
+// pages/api/auth/me.js
+export async function GET(request) {
+  // Parse cookies from request
+  const cookieHeader = request.headers.get('cookie') || '';
+  const cookies = Object.fromEntries(
+    cookieHeader.split('; ').map(c => c.split('='))
+  );
+  
+  const authToken = cookies.auth_token;
+  
+  if (!authToken) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  
+  // Verify token and return user data...
+  return new Response(JSON.stringify({ user: { id: 1 } }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 

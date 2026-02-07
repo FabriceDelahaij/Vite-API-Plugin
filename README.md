@@ -5,8 +5,8 @@ A comprehensive Vite plugin that brings Next.js-style API routes to your Vite pr
 ## Features
 
 - 📁 **File-based routing** - Create API routes in `pages/api` or `src/pages/api`
+- 🎯 **Modern syntax** - Uses standard Request/Response objects (Web API)
 - 🔄 **Dynamic routes** - Support for `[param]` syntax like Next.js
-- 🎯 **Dual syntax support** - Both Next.js style and modern App Router style
 - 🔥 **Hot reload** - Instant updates during development
 - 🌐 **Web standards** - Uses standard Request/Response objects
 - 🔒 **Built-in security** - CORS, rate limiting, CSRF, input sanitization
@@ -136,26 +136,28 @@ The plugin is available as `vite-api-routes-plugin` on NPM and works with both J
 
 **Basic TypeScript Setup:**
 ```typescript
-// Import types for TypeScript projects
-import type { ApiHandler } from 'vite-api-routes-plugin';
+// pages/api/hello.ts
+export async function GET(request: Request): Promise<Response> {
+  return new Response(JSON.stringify({ 
+    message: 'Hello from TypeScript API!' 
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 
-const handler: ApiHandler = (req, res) => {
-  res.status(200).json({ message: 'Hello from TypeScript API!' });
-};
-
-export default handler;
+export async function POST(request: Request): Promise<Response> {
+  const body = await request.json();
+  return new Response(JSON.stringify({ received: body }), {
+    status: 201,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 ```
 
 **Available Types:**
 ```typescript
 import type {
-  // Main handler type
-  ApiHandler,
-  
-  // Request/Response types
-  ApiRequest,
-  ApiResponse,
-  
   // Configuration types
   ApiRoutesOptions,
   CorsConfig,
@@ -195,20 +197,10 @@ import type {
    **JavaScript:**
    ```javascript
    // pages/api/hello.js
-   export default function handler(req, res) {
-     res.status(200).json({ 
-       message: 'Hello World!',
-       timestamp: new Date().toISOString()
-     });
-   }
-   ```
-
-   **Modern App Router Style:**
-   ```javascript
-   // pages/api/hello.js
    export async function GET(request) {
      return new Response(JSON.stringify({
-       message: 'Hello from Vite API Routes!'
+       message: 'Hello from Vite API Routes!',
+       timestamp: new Date().toISOString()
      }), {
        status: 200,
        headers: { 'Content-Type': 'application/json' },
@@ -219,16 +211,15 @@ import type {
    **TypeScript:**
    ```typescript
    // pages/api/hello.ts
-   import type { ApiHandler } from 'vite-api-routes-plugin';
-
-   const handler: ApiHandler = (req, res) => {
-     res.status(200).json({ 
-       message: 'Hello World!',
+   export async function GET(request: Request): Promise<Response> {
+     return new Response(JSON.stringify({
+       message: 'Hello from Vite API Routes!',
        timestamp: new Date().toISOString()
+     }), {
+       status: 200,
+       headers: { 'Content-Type': 'application/json' },
      });
-   };
-
-   export default handler;
+   }
    ```
 
 4. **Start development:**
@@ -241,44 +232,39 @@ import type {
 ### 🎯 More Quick Examples
 
 **Dynamic Routes:**
-```typescript
-// pages/api/users/[id].ts
-import type { ApiHandler } from 'vite-api-routes-plugin';
-
-const handler: ApiHandler = (req, res) => {
-  const { id } = req.query;
+```javascript
+// pages/api/users/[id].js
+export async function GET(request) {
+  const url = new URL(request.url);
+  const id = url.pathname.split('/').pop();
   
-  res.status(200).json({
+  return new Response(JSON.stringify({
     user: {
       id,
       name: `User ${id}`,
       email: `user${id}@example.com`
     }
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
-};
-
-export default handler;
+}
 ```
 
 **POST Route with Body:**
-```typescript
-// pages/api/users.ts
-import type { ApiHandler } from 'vite-api-routes-plugin';
-
-const handler: ApiHandler = (req, res) => {
-  if (req.method === 'POST') {
-    const { name, email } = req.body;
-    
-    res.status(201).json({
-      success: true,
-      user: { id: Date.now(), name, email }
-    });
-  } else {
-    res.status(405).json({ error: 'Method not allowed' });
-  }
-};
-
-export default handler;
+```javascript
+// pages/api/users.js
+export async function POST(request) {
+  const { name, email } = await request.json();
+  
+  return new Response(JSON.stringify({
+    success: true,
+    user: { id: Date.now(), name, email }
+  }), {
+    status: 201,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 ```
 
 Test with:
@@ -424,7 +410,7 @@ Add the plugin to your `vite.config.js`:
 
 ```js
 import { defineConfig } from 'vite';
-import apiRoutes from './vite-plugin-api-routes';
+import apiRoutes from 'vite-api-routes-plugin';
 
 export default defineConfig({
   plugins: [
@@ -484,17 +470,9 @@ export default defineConfig({
 
 ### 2. Create API Routes
 
-Create files in `pages/api/` with either syntax:
+Create files in `pages/api/`:
 
-**Next.js Style (Classic):**
-```js
-// pages/api/hello.js
-export default function handler(req, res) {
-  res.status(200).json({ message: 'Hello!' });
-}
-```
-
-**App Router Style (Modern):**
+**JavaScript:**
 ```js
 // pages/api/hello.js
 export async function GET(request) {
@@ -513,7 +491,7 @@ export async function POST(request) {
 }
 ```
 
-**TypeScript Support:**
+**TypeScript:**
 ```typescript
 // pages/api/hello.ts
 export async function GET(request: Request): Promise<Response> {
@@ -524,16 +502,18 @@ export async function GET(request: Request): Promise<Response> {
 }
 ```
 
-**pages/api/users/[id].ts** (Dynamic route)
-```typescript
-import type { ApiHandler } from '../../../types/api';
-
-const handler: ApiHandler = (req, res) => {
-  const { id } = req.query;
-  res.status(200).json({ userId: id });
-};
-
-export default handler;
+**Dynamic Routes:**
+```javascript
+// pages/api/users/[id].js
+export async function GET(request) {
+  const url = new URL(request.url);
+  const id = url.pathname.split('/').pop();
+  
+  return new Response(JSON.stringify({ userId: id }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
 ```
 
 ### 3. Start Development Server
@@ -556,23 +536,55 @@ Your API routes are now available:
 
 ## API Reference
 
-### Request Object (req)
+### Request Object (Standard Web API)
 
-- `req.method` - HTTP method (GET, POST, etc.)
-- `req.query` - Query parameters and dynamic route params (sanitized)
-- `req.body` - Parsed request body (sanitized)
-- `req.cookies` - Parsed cookies object
-- `req.ip` - Client IP address
-- `req.user` - User object (if auth middleware is used)
-- `req.getCsrfToken()` - Generate a CSRF token
+The `request` parameter is a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object with additional properties:
 
-### Response Object (res)
+- `request.method` - HTTP method (GET, POST, etc.)
+- `request.url` - Full request URL
+- `request.headers` - Headers object
+- `request.json()` - Parse JSON body
+- `request.text()` - Get text body
+- `request.formData()` - Parse form data
+- `request.user` - User object (if auth middleware is used)
 
-- `res.status(code)` - Set status code
-- `res.json(data)` - Send JSON response
-- `res.send(data)` - Send text/JSON response
-- `res.setHeader(name, value)` - Set response header
-- `res.setCookie(name, value, options)` - Set secure cookie
+**Extracting Dynamic Route Parameters:**
+```javascript
+// pages/api/users/[id].js
+export async function GET(request) {
+  const url = new URL(request.url);
+  const id = url.pathname.split('/').pop(); // Extract [id]
+  // or use URLSearchParams for query strings
+  const params = new URLSearchParams(url.search);
+}
+```
+
+### Response Object (Standard Web API)
+
+Return a standard [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object:
+
+```javascript
+// JSON response
+return new Response(JSON.stringify({ data: 'value' }), {
+  status: 200,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// Text response
+return new Response('Hello World', {
+  status: 200,
+  headers: { 'Content-Type': 'text/plain' },
+});
+
+// With cookies
+return new Response(JSON.stringify({ success: true }), {
+  status: 200,
+  headers: {
+    'Content-Type': 'application/json',
+    'Set-Cookie': 'session=abc123; HttpOnly; Secure; SameSite=Strict',
+  },
+});
+```
 
 ### Response Headers
 
@@ -583,7 +595,7 @@ Rate limiting headers are automatically added:
 
 ## Examples
 
-### Modern App Router Style
+### Multiple HTTP Methods
 
 ```js
 // pages/api/users.js - Clean method separation
@@ -607,7 +619,7 @@ export async function POST(request) {
 }
 ```
 
-### Dynamic Routes (Modern Style)
+### Dynamic Routes
 
 ```js
 // pages/api/products/[id].js
@@ -626,22 +638,10 @@ export async function GET(request) {
 
 ### Protected Route with Authentication
 
-**Next.js Style:**
-```js
-// pages/api/protected/data.js
-export default function handler(req, res) {
-  // req.user is set by auth middleware
-  res.status(200).json({ 
-    message: `Hello ${req.user.name}`,
-    data: 'sensitive data',
-  });
-}
-```
-
-**Modern Style:**
 ```js
 // pages/api/protected/data.js
 export async function GET(request) {
+  // request.user is set by auth middleware
   return new Response(JSON.stringify({
     message: `Hello ${request.user.name}`,
     data: 'sensitive data',
@@ -656,28 +656,28 @@ export async function GET(request) {
 
 ```js
 // pages/api/auth/login.js
-export default function handler(req, res) {
-  if (req.method === 'POST') {
-    const { username, password } = req.body;
+export async function POST(request) {
+  const { username, password } = await request.json();
+  
+  if (username === 'admin' && password === 'secret') {
+    const csrfToken = crypto.randomUUID(); // Generate CSRF token
     
-    if (username === 'admin' && password === 'secret') {
-      const csrfToken = req.getCsrfToken();
-      
-      res.setCookie('session', 'token123', {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'strict',
-        maxAge: 3600,
-      });
-      
-      return res.status(200).json({ 
-        success: true, 
-        csrfToken,
-      });
-    }
-    
-    return res.status(401).json({ error: 'Invalid credentials' });
+    return new Response(JSON.stringify({ 
+      success: true, 
+      csrfToken,
+    }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': `session=token123; HttpOnly; Secure; SameSite=Strict; Max-Age=3600`,
+      },
+    });
   }
+  
+  return new Response(JSON.stringify({ error: 'Invalid credentials' }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 
@@ -757,19 +757,18 @@ auth: async (req, res) => {
 
 Example encryption configuration:
 ```js
+import { defineConfig } from 'vite';
 import apiRoutes from 'vite-api-routes-plugin';
-import { createEncryptionManager } from 'vite-api-routes-plugin/encryption';
-
-const encryptionManager = createEncryptionManager({
-  enabled: process.env.ENCRYPTION_ENABLED === 'true',
-  algorithm: 'aes-256-gcm',
-  keyRotation: '24h',
-});
 
 export default defineConfig({
   plugins: [
     apiRoutes({
-      encryption: encryptionManager,
+      encryption: {
+        enabled: process.env.ENCRYPTION_ENABLED === 'true',
+        algorithm: 'aes-256-gcm',
+        keyRotation: '24h',
+        secretKey: process.env.ENCRYPTION_SECRET_KEY,
+      },
       // ... other options
     }),
   ],
@@ -792,6 +791,7 @@ The plugin includes comprehensive testing utilities to make API testing easier:
 ### Test Utilities
 
 ```typescript
+// Import from the testing module in your project
 import {
   createTestRequest,
   createMockUser,
@@ -799,7 +799,7 @@ import {
   MockDatabase,
   RateLimitTester,
   CsrfTester,
-} from 'vite-api-routes-plugin/testing';
+} from './src/testing';
 
 // Create mock requests
 const request = createTestRequest('/api/users', {
@@ -808,8 +808,9 @@ const request = createTestRequest('/api/users', {
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Test API responses
-const response = await handler(request);
+// Test API responses (using modern style route)
+import { POST } from './pages/api/users';
+const response = await POST(request);
 await ApiTestHelper.expectSuccess(response, 201);
 await ApiTestHelper.expectJson(response);
 
@@ -823,8 +824,8 @@ const user = mockDb.create('users', { name: 'John' });
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { createTestRequest, ApiTestHelper } from '../testing';
-import { POST } from '../pages/api/users';
+import { createTestRequest, ApiTestHelper } from './src/testing';
+import { POST } from './pages/api/users';
 
 describe('Users API', () => {
   it('should create a new user', async () => {
@@ -863,16 +864,79 @@ npm run test:ui
 
 ## Security Best Practices
 
-1. **Use HTTPS in production**
-2. **Whitelist specific origins** (never use `origin: '*'` in production)
-3. **Implement proper authentication** (JWT, sessions, etc.)
-4. **Validate all inputs** in your handlers
-5. **Use environment variables** for secrets
-6. **Enable all security features**
-7. **Set appropriate rate limits**
-8. **Log security events**
+### Essential Security Checklist
 
-See [SECURITY.md](./SECURITY.md) for comprehensive security guidelines.
+- ✅ **Enable HTTPS in production** - See [HTTPS-SETUP.md](./HTTPS-SETUP.md)
+- ✅ **Whitelist specific CORS origins** - Never use `origin: '*'` in production
+- ✅ **Implement authentication** - JWT, API keys, or sessions (see [AUTH-GUIDE.md](./AUTH-GUIDE.md))
+- ✅ **Enable CSRF protection** - Enabled by default for state-changing methods
+- ✅ **Set rate limits** - Protect against brute force and DDoS attacks
+- ✅ **Use secure cookies** - httpOnly, secure, sameSite flags (see [COOKIES-GUIDE.md](./COOKIES-GUIDE.md))
+- ✅ **Validate all inputs** - Sanitization enabled by default
+- ✅ **Store secrets securely** - Use environment variables (see [ENV-GUIDE.md](./ENV-GUIDE.md))
+- ✅ **Use strong password hashing** - Argon2id implementation included
+- ✅ **Enable error tracking** - Sentry integration (see [SENTRY-SETUP.md](./SENTRY-SETUP.md))
+- ✅ **Keep dependencies updated** - Use `npm audit` regularly (see [DEPENDENCIES-GUIDE.md](./DEPENDENCIES-GUIDE.md))
+- ✅ **Enable response compression** - Reduce bandwidth and improve performance
+- ✅ **Implement request timeouts** - Prevent slowloris attacks (30s default)
+
+### Quick Security Setup
+
+```js
+// vite.config.js - Production-ready security configuration
+export default defineConfig({
+  plugins: [
+    apiRoutes({
+      // HTTPS (required for production)
+      https: {
+        enabled: true,
+        key: fs.readFileSync(process.env.SSL_KEY_PATH),
+        cert: fs.readFileSync(process.env.SSL_CERT_PATH),
+      },
+      
+      // CORS - Whitelist specific origins
+      cors: {
+        origin: process.env.ALLOWED_ORIGINS.split(','),
+        credentials: true,
+      },
+      
+      // Rate limiting - Adjust based on your needs
+      rateLimit: {
+        windowMs: 15 * 60 * 1000, // 15 minutes
+        max: 100, // Max 100 requests per IP
+      },
+      
+      // Security features
+      security: {
+        enableCsrf: true,
+        enableHelmet: true,
+        maxBodySize: 1024 * 1024, // 1MB
+      },
+      
+      // Error tracking
+      errorTracking: {
+        enabled: true,
+        dsn: process.env.SENTRY_DSN,
+        environment: 'production',
+      },
+      
+      // Authentication
+      auth: async (req, res) => {
+        // Implement your auth logic
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) {
+          res.status(401).json({ error: 'Unauthorized' });
+          return false;
+        }
+        // Verify token and set req.user
+        return true;
+      },
+    }),
+  ],
+});
+```
+
+See [SECURITY.md](./SECURITY.md) for comprehensive security guidelines and best practices.
 
 ## License
 

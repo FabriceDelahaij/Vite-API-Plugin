@@ -148,23 +148,32 @@ If you need to manually capture errors:
 ```js
 import * as Sentry from '@sentry/node';
 
-export default function handler(req, res) {
+export async function POST(request) {
   try {
+    const body = await request.json();
     // Your code...
+    
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
   } catch (error) {
     // Capture with custom context
     Sentry.captureException(error, {
       tags: {
         endpoint: '/api/example',
-        userId: req.user?.id,
+        userId: request.user?.id,
       },
       extra: {
-        requestBody: req.body,
+        requestBody: body,
         customData: 'additional info',
       },
     });
     
-    res.status(500).json({ error: 'Internal error' });
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 }
 ```
@@ -258,8 +267,8 @@ auth: async (req, res) => {
 
 ```js
 // Sentry webhook endpoint
-export default function handler(req, res) {
-  const { action, data } = req.body;
+export async function POST(request) {
+  const { action, data } = await request.json();
   
   if (action === 'issue.created') {
     // Send to your monitoring system
@@ -269,6 +278,13 @@ export default function handler(req, res) {
       level: data.issue.level,
     });
   }
+
+  return new Response(JSON.stringify({ received: true }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+```
   
   res.status(200).json({ received: true });
 }
@@ -301,9 +317,11 @@ Create custom dashboards in Sentry:
 
 ```js
 // pages/api/test-error.js
-export default function handler(req, res) {
+export async function GET(request) {
   // This will be captured by Sentry
   throw new Error('Test error for Sentry');
+}
+```
 }
 ```
 

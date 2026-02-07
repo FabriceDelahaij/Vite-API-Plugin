@@ -86,13 +86,16 @@ export default defineConfig({
 
 ```js
 // pages/api/protected/data.js
-export default function handler(req, res) {
-  // req.user is automatically populated by auth middleware
-  const { userId, email, role } = req.user;
+export async function GET(request) {
+  // request.user is automatically populated by auth middleware
+  const { userId, email, role } = request.user;
 
-  res.json({
+  return new Response(JSON.stringify({
     message: `Hello ${email}`,
     data: 'sensitive data',
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 ```
@@ -228,44 +231,63 @@ res.setCookie('sessionId', sessionId, {
 ### Require Specific Role
 
 ```js
-import { requireRole } from './lib/auth.js';
-
-export default function handler(req, res) {
-  // Only allow admin users
-  const hasAccess = requireRole('admin')(req, res);
-  if (!hasAccess) return;
+// pages/api/admin/data.js
+export async function GET(request) {
+  // Check if user has admin role
+  if (!request.user || request.user.role !== 'admin') {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // Admin-only logic
-  res.json({ message: 'Admin access granted' });
+  return new Response(JSON.stringify({ message: 'Admin access granted' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 
 ### Require Multiple Roles
 
 ```js
-import { requireRole } from './lib/auth.js';
-
-export default function handler(req, res) {
+// pages/api/moderation/data.js
+export async function GET(request) {
   // Allow admin OR moderator
-  const hasAccess = requireRole('admin', 'moderator')(req, res);
-  if (!hasAccess) return;
+  const allowedRoles = ['admin', 'moderator'];
+  if (!request.user || !allowedRoles.includes(request.user.role)) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
-  res.json({ message: 'Access granted' });
+  return new Response(JSON.stringify({ message: 'Access granted' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 
 ### Require Permission
 
 ```js
-import { requirePermission } from './lib/auth.js';
-
-export default function handler(req, res) {
+// pages/api/delete/resource.js
+export async function DELETE(request) {
   // Require 'delete' permission
-  const hasAccess = requirePermission('delete')(req, res);
-  if (!hasAccess) return;
+  if (!request.user || !request.user.permissions?.includes('delete')) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   // Delete logic
-  res.json({ message: 'Deleted successfully' });
+  return new Response(JSON.stringify({ message: 'Deleted successfully' }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 ```
 
