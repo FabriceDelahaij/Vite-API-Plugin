@@ -1,0 +1,90 @@
+name: Security Audit
+
+on:
+  # Run on push to main branch
+  push:
+    branches: [main, master]
+  
+  # Run on pull requests
+  pull_request:
+    branches: [main, master]
+  
+  # Run weekly on Monday at 9 AM UTC
+  schedule:
+    - cron: '0 9 * * 1'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run security audit
+        id: audit
+        run: |
+          echo "Running security audit..."
+          if npm audit --audit-level=moderate; then
+            echo "audit_result=success" >> $GITHUB_OUTPUT
+          else
+            echo "audit_result=failure" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+      
+      - name: Check for outdated packages
+        run: npm outdated || true
+      
+      - name: Run dependency check script
+        run: node scripts/check-dependencies.js
+      
+      - name: Create issue if vulnerabilities found
+        if: steps.audit.outputs.audit_result == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'security,dependencies',
+              state: 'open'
+            });
+            
+            // Only create issue if one doesn't already exist
+            if (issues.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: '🚨 Security vulnerabilities detected',
+                body: `Security audit found vulnerabilities in dependencies.
+                
+**Action Required:**
+- Review the security audit results
+- Update vulnerable dependencies
+- Run \`npm audit fix\` to automatically fix issues
+- For manual fixes, run \`npm audit\` for detailed information
+
+**Workflow:** ${context.workflow}
+**Run:** ${context.runNumber}
+**Commit:** ${context.sha}`,
+                labels: ['security', 'dependencies', 'automated']
+              });
+            }

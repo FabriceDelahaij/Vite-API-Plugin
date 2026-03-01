@@ -1,0 +1,219 @@
+﻿
+≡ƒº¬ COMPREHENSIVE COMPRESSION TEST SUITE
+============================================================
+Testing all compression features and edge cases...
+
+
+≡ƒôï Test 1: HEAD Request Handling
+------------------------------------------------------------
+    Γ£à next() called for HEAD request
+    Γ£à HEAD request marked as uncompressed
+    Γ£à Request counted in stats
+
+≡ƒôï Test 2: Status Code Handling (204, 304, 1xx)
+------------------------------------------------------------
+    Γ£à Status 204 (No Content) skipped compression
+    Γ£à Status 304 (Not Modified) skipped compression
+    Γ£à Status 100 (Continue) skipped compression
+    Γ£à Status 101 (Switching Protocols) skipped compression
+
+≡ƒôï Test 3: Cache-Control Awareness
+------------------------------------------------------------
+    Γ£à no-store prevents caching
+    Γ£à private prevents caching
+    Γ£à public allows caching
+    Γ£à no Cache-Control allows caching
+    Γ£à Authorization header prevents caching
+
+≡ƒôï Test 4: Algorithm Selection & Negotiation
+------------------------------------------------------------
+    Γ£à q-values respected (gzip preferred)
+    Γ£à Server preference when equal quality
+    Γ£à Single encoding accepted
+    Γ£à identity returns no compression
+    Γ£à q=0 excludes encoding
+    Γ£à Wildcard matches server preference
+
+≡ƒôï Test 5: Zstd Negotiation Safety
+------------------------------------------------------------
+    Γ£à Zstd not used without explicit support
+    Γ¥î Zstd used when explicitly supported
+    Γ£à Internal client gets valid algorithm
+
+≡ƒôï Test 6: Brotli HTTPS Preference
+------------------------------------------------------------
+    Γ£à Brotli avoided over HTTP
+    Γ£à Brotli used over HTTPS
+    Γ£à Brotli used with X-Forwarded-Proto: https
+
+≡ƒôï Test 7: Compression Threshold
+------------------------------------------------------------
+    Γ£à Small payloads below threshold not compressed
+    Γ£à Large payloads above threshold compressed
+
+≡ƒôï Test 8: Content-Type Filtering
+------------------------------------------------------------
+    Γ£à JSON is compressible
+    Γ£à Text is compressible
+    Γ£à JavaScript is compressible
+    Γ£à PNG is not compressible
+    Γ£à Video is not compressible
+    Γ£à Binary is not compressible
+
+≡ƒôï Test 9: Actual Compression (All Algorithms)
+------------------------------------------------------------
+    Original size: 2614 bytes
+    Γ£à BR compression successful (40 bytes, 98.47% reduction)
+    Γ£à GZIP compression successful (67 bytes, 97.44% reduction)
+    Γ£à DEFLATE compression successful (55 bytes, 97.90% reduction)
+    Γ£à ZSTD compression successful (45 bytes, 98.28% reduction)
+
+≡ƒôï Test 10: Compression Cache (LRU)
+------------------------------------------------------------
+    Γ£à First compression is cache miss
+    Γ£à Second compression is cache hit
+    Γ£à Cache filled to max size
+    Γ£à LRU eviction occurred
+    Γ£à Cache size maintained at max
+
+≡ƒôï Test 11: Two-Tier Cache System
+------------------------------------------------------------
+    Γ£à Response cached in first tier
+    Γ£à Compressed data cached in second tier
+    Γ£à Response cache hit on second request
+    Γ£à Compression cache hit on second request
+
+≡ƒôï Test 18: Cache Cleanup & TTL
+------------------------------------------------------------
+    Γ£à Entry cached
+[Compression] Cleaned up 1 expired cache entries
+    Γ£à Expired entry cleaned up
+
+≡ƒôï Test 12: BREACH Attack Mitigation
+------------------------------------------------------------
+    Γ£à Compression skipped with Authorization header
+    Γ£à Compression skipped with cookies
+    Γ£à Compression skipped with CSRF token (or other security checks)
+
+≡ƒôï Test 13: Vary Header Management
+------------------------------------------------------------
+    Γ£à Vary: Accept-Encoding header added
+    Γ£à Vary header merged with existing values
+
+≡ƒôï Test 14: Max Payload Size (DoS Prevention)
+------------------------------------------------------------
+    Γ£à Small payload compressed
+    Γ£à Large payload rejected
+    Γ£à Payload over limit not compressed
+
+≡ƒôï Test 15: Minimum Compression Ratio
+------------------------------------------------------------
+    Γ£à Highly compressible data compressed
+    Γ£à Poorly compressible data rejected
+
+≡ƒôï Test 16: Compression Presets
+------------------------------------------------------------
+    Γ£à development preset loaded
+    Γ£à production preset loaded
+    Γ£à aggressive preset loaded
+    Γ£à minimal preset loaded
+    Γ£à api preset loaded
+    Γ£à zstd preset loaded
+    Γ£à secure preset loaded
+    Γ£à String preset works
+
+≡ƒôï Test 20: Configuration Validation
+------------------------------------------------------------
+    Γ£à Valid config accepted
+    Γ£à Invalid gzip level rejected
+    Γ£à Negative threshold rejected
+    Γ£à Invalid algorithm rejected
+
+≡ƒôï Test 21: Zstd Streaming Fallback
+------------------------------------------------------------
+    Γ£à Zstd uses buffered compression for large payloads
+    Γ£à Compression successful
+    Γ£à Zstd selected when available
+
+≡ƒôï Test 22: Chunk Accumulation Cap (Memory Safety)
+------------------------------------------------------------
+    Γ£à Large buffered chunks handled safely
+    Γ£à Write calls were made
+
+≡ƒôï Test 23: Route-Level Configuration - Level Override
+------------------------------------------------------------
+    Γ£à Gzip compression applied
+    Γ£à Response ended
+Γ£à Route-level compression level override works
+
+≡ƒôï Test 24: Route-Level Configuration - Algorithm Override
+------------------------------------------------------------
+    Γ£à Gzip used instead of br
+Γ£à Route-level algorithm override works
+
+≡ƒôï Test 25: Route-Level Configuration - Threshold Override
+------------------------------------------------------------
+    Γ£à Response ended
+Γ£à Route-level threshold override works
+
+≡ƒôï Test 26: Route-Level Configuration - Streaming Override
+------------------------------------------------------------
+    Γ£à Response ended
+Γ£à Route-level streaming override works
+
+≡ƒôï Test 27: Route-Level Configuration - Security Override
+------------------------------------------------------------
+    Γ£à Compression applied despite cookies
+Γ£à Route-level security override works
+
+≡ƒôï Test 28: Route-Level Configuration - Backward Compatibility
+------------------------------------------------------------
+    Γ£à Compression disabled
+Γ£à Backward compatibility with disableCompression works
+
+≡ƒôï Test 29: X-Compression-Policy Header - Internal
+------------------------------------------------------------
+    Γ£à Zstd enabled for internal policy
+Γ£à X-Compression-Policy: internal enables zstd
+
+≡ƒôï Test 30: X-Compression-Policy Header - Without Policy
+------------------------------------------------------------
+    Γ£à Falls back to gzip without policy
+    Γ£à Zstd not used without policy
+Γ£à Zstd rejected without X-Compression-Policy header
+
+≡ƒôï Test 31: X-Compression-Policy Header - Legacy Support
+------------------------------------------------------------
+    Γ£à Zstd enabled for legacy header
+Γ£à Legacy X-Internal-Client header still works
+
+≡ƒôï Test 32: Combined - Route Config + Compression Policy
+------------------------------------------------------------
+    Γ£à Zstd used with both features
+Γ£à Route config and compression policy work together
+
+≡ƒôï Test 17: Statistics Tracking
+------------------------------------------------------------
+    Γ£à Total requests tracked
+    Γ£à Compressed count tracked
+    Γ£à Bytes in tracked
+    Γ£à Bytes out tracked
+    Γ£à Compression ratio calculated
+    Γ£à Memory formatted
+
+≡ƒôï Test 19: Error Handling
+------------------------------------------------------------
+    Γ£à Invalid algorithm handled gracefully
+    Γ£à Empty buffer handled
+
+============================================================
+≡ƒôè TEST RESULTS
+============================================================
+Γ£à Passed: 93
+Γ¥î Failed: 1
+≡ƒôê Total:  94
+≡ƒÄ» Success Rate: 98.9%
+============================================================
+
+ΓÜá∩╕Å  SOME TESTS FAILED
+
