@@ -1,110 +1,67 @@
 /**
  * Streaming Compression Example
- * 
- * Demonstrates how the compression middleware automatically switches
- * between buffered and streaming compression based on response size.
- * 
- * Features:
- * - Automatic streaming for large responses (>100KB by default)
- * - Buffered compression for smaller responses (cached)
- * - Memory-efficient handling of large payloads
- * - Chunked transfer encoding for streams
  */
 
-import { createCompressionMiddleware } from '../../../src/lib/compression.js';
+export async function GET(request) {
+  const url = new URL(request.url);
+  const size = url.searchParams.get('size') || 'small';
+  const format = url.searchParams.get('format') || 'json';
 
-// Create compression middleware with custom streaming threshold
-const { middleware: compress, compressionManager } = createCompressionMiddleware({
-  streaming: {
-    enabled: true,
-    threshold: 50 * 1024, // Use streaming for responses > 50KB
-  },
-  level: 6, // Balanced compression level
-});
-
-export default async function handler(req, res) {
-  // Apply compression middleware
-  await new Promise((resolve, reject) => {
-    compress(req, res, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-
-  const { size = 'small', format = 'json' } = req.query;
-
-  // Generate different sized responses to demonstrate streaming
+  // Generate different sized responses
   let data;
   let description;
 
   switch (size) {
     case 'tiny':
-      // 1KB - No compression (below threshold)
       data = generateData(100);
-      description = '1KB response - Below compression threshold';
+      description = '1KB response';
       break;
-
     case 'small':
-      // 10KB - Buffered compression with caching
       data = generateData(1000);
-      description = '10KB response - Buffered compression (cached)';
+      description = '10KB response';
       break;
-
     case 'medium':
-      // 50KB - Buffered compression
       data = generateData(5000);
-      description = '50KB response - Buffered compression';
+      description = '50KB response';
       break;
-
     case 'large':
-      // 200KB - Streaming compression
       data = generateData(20000);
-      description = '200KB response - Streaming compression (memory efficient)';
+      description = '200KB response';
       break;
-
     case 'huge':
-      // 1MB - Streaming compression
       data = generateData(100000);
-      description = '1MB response - Streaming compression';
+      description = '1MB response';
       break;
-
     default:
       data = generateData(1000);
       description = 'Default 10KB response';
   }
 
-  // Get compression stats
-  const stats = compressionManager.getStats();
-
-  // Return response based on format
   if (format === 'json') {
-    res.json({
-      description,
-      size: size,
-      itemCount: data.length,
-      stats: {
-        totalRequests: stats.totalRequests,
-        compressed: stats.compressed,
-        compressionRate: stats.compressionRate,
-        compressionRatio: stats.compressionRatio + '%',
-        cacheHitRate: stats.cacheHitRate,
+    return new Response(JSON.stringify({
+      success: true,
+      data: {
+        description,
+        size,
+        itemCount: data.length,
+        items: data,
       },
-      data: data,
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
     });
   } else {
-    // Plain text format
     const text = data.map(item => 
       `${item.id}: ${item.name} - ${item.description}`
     ).join('\n');
     
-    res.setHeader('Content-Type', 'text/plain');
-    res.send(text);
+    return new Response(text, {
+      status: 200,
+      headers: { 'Content-Type': 'text/plain' },
+    });
   }
 }
 
-/**
- * Generate sample data for testing
- */
 function generateData(count) {
   const items = [];
   for (let i = 0; i < count; i++) {

@@ -22,6 +22,10 @@ logs/
 *.log
 npm-debug.log*
 
+# Test results
+test-results/
+playwright-report/
+
 # OS files
 .DS_Store
 Thumbs.db

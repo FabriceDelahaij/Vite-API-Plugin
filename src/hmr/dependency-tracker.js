@@ -112,18 +112,17 @@ export class DependencyTracker {
           this.addDependency(source, filePath, dependencies, 'import');
         },
 
-        // Dynamic imports: import('...')
+        // Dynamic imports: import('...') and CommonJS require: require('...')
         CallExpression(nodePath) {
+          // Dynamic imports
           if (nodePath.node.callee.type === 'Import') {
             const arg = nodePath.node.arguments[0];
             if (arg && arg.type === 'StringLiteral') {
               this.addDependency(arg.value, filePath, dependencies, 'dynamic-import');
             }
           }
-        },
-
-        // CommonJS require: require('...')
-        CallExpression(nodePath) {
+          
+          // CommonJS require
           if (
             nodePath.node.callee.type === 'Identifier' &&
             nodePath.node.callee.name === 'require'

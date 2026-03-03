@@ -1,54 +1,25 @@
 /**
  * Compression Presets Example
- * 
- * Demonstrates how to use compression presets for different scenarios.
- * Presets provide pre-configured settings optimized for specific use cases.
  */
 
-import { createCompressionMiddleware, COMPRESSION_PRESETS } from '../../../src/lib/compression.js';
-
-// Choose preset based on environment or use case
-const preset = process.env.NODE_ENV === 'production' ? 'production' : 'development';
-const { middleware: compress, compressionManager } = createCompressionMiddleware(preset);
-
-export default async function handler(req, res) {
-  // Apply compression middleware
-  await new Promise((resolve, reject) => {
-    compress(req, res, (err) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-
-  const { preset: requestedPreset = 'production', size = 'medium' } = req.query;
+export async function GET(request) {
+  const url = new URL(request.url);
+  const size = url.searchParams.get('size') || 'medium';
 
   // Generate sample data
   const data = generateData(size);
 
-  // Show preset information
-  const presetInfo = COMPRESSION_PRESETS[requestedPreset] || COMPRESSION_PRESETS.production;
-  const stats = compressionManager.getStats();
-
-  res.json({
-    message: 'Compression Presets Demo',
-    currentPreset: preset,
-    availablePresets: Object.keys(COMPRESSION_PRESETS),
-    presetDetails: {
-      [requestedPreset]: {
-        threshold: presetInfo.threshold,
-        level: presetInfo.level,
-        streaming: presetInfo.streaming,
-        algorithms: presetInfo.algorithms,
-      },
+  return new Response(JSON.stringify({
+    success: true,
+    data: {
+      message: 'Compression Presets Demo',
+      size,
+      itemCount: data.length,
+      items: data,
     },
-    stats: {
-      totalRequests: stats.totalRequests,
-      compressed: stats.compressed,
-      compressionRate: stats.compressionRate,
-      compressionRatio: stats.compressionRatio + '%',
-      cacheHitRate: stats.cacheHitRate,
-    },
-    data,
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
   });
 }
 
