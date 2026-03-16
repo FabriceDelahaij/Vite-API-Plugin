@@ -76,6 +76,6 @@
     "@sentry/node": "^10.38.0",
     "chalk": "^5.0.0",
     "commander": "^14.0.3",
-    "inquirer": "^13.2.2"
+    "inquirer": "^13.3.2"
   }
 }
